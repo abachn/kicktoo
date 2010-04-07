@@ -1,0 +1,49 @@
+#!/bin/bash
+
+VERSION=0.2.9
+
+import() {
+        module="${1}"
+	source modules/${module}.sh || source /usr/lib/kicktoo-${VERSION}/modules/${module}.sh || exit 1
+}
+
+usage() {
+	cat <<EOF
+Usage:
+  ${0} <device>		Opens a clear or encrypted device and chroot within
+  ${0} close		Closes the luks device or umount
+
+Example:
+  ${0} /dev/sda2
+
+EOF
+}
+
+import rescue
+import misc
+import output
+
+if [ -z "${1}" ]; then
+	echo "You must provide an argument"
+	usage
+	exit 1
+fi
+
+if [ "${1}" == "close" ]; then
+	rescue_close
+	exit
+fi
+
+if [ ! -b ${1} ] ; then
+	echo "The provided device is not a block device!"
+	exit 1
+fi
+
+if cryptsetup isLuks ${1}; then
+	rescue ${1} luks
+	exit
+else
+	rescue ${1}
+	exit
+fi
+

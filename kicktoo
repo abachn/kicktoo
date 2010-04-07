@@ -1,0 +1,266 @@
+#!/bin/bash
+
+VERSION=0.2.9
+
+debug=0
+verbose=0
+quiet=0
+sanitycheck=0
+
+do_part=0
+do_raid=0
+do_lvm=0
+do_luks=0
+do_kernel=0
+do_postnet=0
+do_password=0
+do_tz=0
+do_keymap=0
+do_host=0
+do_localmounts=0
+do_netmounts=0
+do_stage_uri=0
+do_format=0
+do_bootloader=0
+do_xpkg=0
+do_services=0
+
+trap "failure_cleanup" TERM KILL INT QUIT ABRT
+
+# can't hurt
+if [ "$(whoami)" != "root" ] ; then
+	echo "You must be root" ; exit 1
+fi
+
+has() {
+	if ( which $1 &>/dev/null ) ; then
+		true
+	else
+		error "$1: core tool missing from livecd!"
+		echo "use the package manager to install it"
+		echo "or use another livecd." ; exit 1
+	fi
+}
+
+# check for required programs on livecd
+for a in bash fdisk grep shred egrep mount swapoff swapon mke2fs wget chroot tar whoami hostname # cryptsetup unxz dialog
+do
+	has "${a}"
+done
+
+import() {
+	module=$1
+	if source modules/${module}.sh &>/dev/null ; then
+		true
+	elif source /usr/lib/kicktoo-${VERSION}/modules/${module}.sh ; then
+		true
+	else
+		echo "critical error - cannot load modules - exiting!" ; exit 1
+	fi
+	debug import "imported module ${module}"
+}
+
+usage() {
+	msg=$1
+	if [ -n "${msg}" ]; then
+		echo -e "${msg}\n"
+	fi
+	cat <<EOF
+Usage:
+	$0 [options] <profile>
+
+Options:
+	-h, --help            This
+	-d, --debug           Output debugging messages
+	-q, --quiet           Only output fatal error messages
+	-v, --verbose         Be verbose (show command output)
+	-s, --sanity-check    Sanity check install profile
+EOF
+#	-c, --client <host>   Act as a client and connect to a kicktoo daemon
+	cat <<FOE
+	--version             Print version
+
+Parameter:
+	profile              Path to an install profile
+
+Tip:
+	read doc/config.txt for all profile features
+
+FOE
+}
+
+for i in output misc spawn fetcher portage bootloader partition install_steps config stepcontrol server 
+do
+	import $i
+done
+
+while [ ${#} -gt 0 ]
+do
+	a=${1}
+	shift
+	case "${a}" in
+		-h|--help)
+			usage
+			exit 0
+			;;
+		-s|--sanity-check)
+			sanitycheck=1
+			;;
+		-d|--debug)
+			debug=1
+			;;
+		-q|--quiet)
+			if [ ${verbose} = 1 ]; then
+				warn "The --quiet and --verbose options are mutually exclusive"
+				warn "Last option will prevail"
+				verbose=0
+			fi
+			quiet=1
+			;;
+		-v|--verbose)
+			if [ ${quiet} = 1 ]; then
+				warn "The --quiet and --verbose options are mutually exclusive"
+				warn "Last option will prevail"
+				quiet=0
+			fi
+			verbose=1
+			;;
+		-c|--client)
+			server=${1}
+			shift
+			;;
+		--version)
+			echo "Kicktoo version ${VERSION} based on Quickstart modules"
+			exit 0
+			;;
+		-*)
+			usage "You have specified an invalid option: ${a}"
+			exit 1
+			;;
+		*)
+			profile=$a
+			;;
+	esac
+done
+if [ -n "${server}" ]; then
+	server_init
+	if server_get_profile; then
+		profile="/tmp/kicktoo_profile"
+	fi
+fi
+if [ -z "${profile}" ]; then
+	usage "You must specify a profile"
+	exit 1
+fi
+if [ ! -f "${profile}" ]; then
+	error "Specified profile does not exist!"
+	exit 1
+else
+	# load profile
+	source "${profile}"
+	# profile variables are now accessible
+	# export  variables are now accessible (i.e. do_luks) from config.sh functions
+
+	if ! touch ${logfile} 2>/dev/null; then
+		error "Logfile is not writeable!"
+		exit 1
+	fi
+
+	# if pvcreate is missing, only exit in case of --lvm
+	if [ "${do_lvm}" == "yes" ] ; then
+		has "pvcreate"
+	fi
+
+	# if cryptsetup is missing, only exit in case of --luks
+	if [ "${do_luks}" == "yes" ] ; then
+	        has "cryptsetup"
+	fi
+
+	# if dist=exherbo, check we have unxz
+	if [ "${distro}" == "exherbo" ] ; then
+	        has "unxz"
+	fi
+
+	arch=$(get_arch) ; [ -z "${arch}" ] && die "Could not determine system architecture!"
+
+	# call sanity_check_config if 'kicktoo -s <profile>' is run and exit
+	if [ "${sanitycheck}" = "1" ]; then
+		runstep sanity_check_config 	"Sanity checking config"
+		exit 0
+	fi
+fi
+
+debug main "Pushing ${distro} system for ${arch}"
+
+run_pre_install_script 			"Running pre-install script if any"
+if [ "${do_part}" == "yes" ] ; then
+	runstep partition 		"Partitioning"
+fi
+if [ "${do_raid}" == "yes" ] ; then
+	runstep setup_mdraid 		"Setting up RAID arrays"
+fi
+if [ "${do_lvm}" == "yes" ] ; then
+	runstep setup_lvm 		"Setting up LVM volumes"
+fi
+if [ "${do_luks}" == "yes" ] ; then
+        runstep luks_devices 		"Encrypting devices"
+fi
+if [ "${do_format}" == "yes" ] ; then
+	runstep format_devices 		"Formatting devices"
+fi
+if [ "${do_localmounts}" == "yes" ] ; then
+	runstep mount_local_partitions 	"Mounting local partitions"
+fi
+if [ "${do_netmounts}" == "yes" ] ; then
+	runstep mount_network_shares 	"Mounting network shares"
+fi
+if [ "${do_stage_uri}" == "yes" ] || [ "${do_stage_path}" == "yes" ] ; then
+	runstep fetch_stage_tarball	"Fetching stage tarball"
+	runstep unpack_stage_tarball 	"Unpacking stage tarball"
+	runstep prepare_chroot 		"Preparing chroot"
+	runstep setup_fstab		"Setting up /etc/fstab"
+fi
+if [ "${do_tree}" == "yes" ] ; then
+	runstep fetch_repo_tree 	"Fetching repository tree"
+	runstep unpack_repo_tree	"Unpacking repository tree"
+fi
+if [ "${do_luks}" == "yes" ] ; then
+	runstep install_cryptsetup 	"Installing cryptsetup"
+fi
+if [ "${do_kernel}" == "yes" ] ; then
+	runstep build_kernel 		"Building kernel"
+fi
+if [ "${do_postnet}" == "yes" ] ; then
+	runstep setup_network_post 	"Setting up post-install networking"
+fi
+if [ "${do_password}" == "yes" ] ; then
+	runstep setup_root_password 	"Setting up root password"
+fi
+if [ "${do_tz}" == "yes" ] ; then
+	runstep setup_timezone 		"Setting up timezone"
+fi
+if [ "${do_keymap}" == "yes" ] ; then
+	runstep setup_keymap 		"Setting up keymap"
+fi
+if [ "${do_host}" == "yes" ] ; then
+	runstep setup_host 		"Setting up hostname"
+fi
+if [ "${do_bootloader}" == "yes" ] ; then
+	runstep install_bootloader 	"Compiling bootloader"
+	runstep configure_bootloader 	"Configuring bootloader"
+fi
+if [ "${do_xpkg}" == "yes" ] ; then
+	runstep install_extra_packages 	"Compiling extra packages"
+fi
+if [ "${do_services}" == "yes" ] ; then
+	runstep add_and_remove_services "Adding and removing services"
+fi
+runstep run_post_install_script 	"Running post-install script if any"
+runstep finishing_cleanup 		"Cleaning up"
+
+notify 					"Install complete!"
+
+if [ "${reboot}" = "yes" ]; then
+	notify 				"Rebooting..."
+	reboot
+fi

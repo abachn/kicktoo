@@ -1,0 +1,98 @@
+===========
+=WISH LIST=
+===========
+DONE - detect if cryptsetup is there in case of --luks
+DONE - detect if unxz is there in case of installing exherbo
+DONE - --luks genkernel support for unstable: ~gentoo, funtoo (need baselayout-2)
+DONE |- profile parsing
+DONE |- cryptsetup calls
+DONE - dist=funtoo install support
+DONE |- profile parsing
+DONE |- git checkout call
+DONE  |- move all code to profile side (see doc/~funtoo.profile)
+DONE - Extend kicktoo-rescue to non luks users
+DONE |- autodetect cryptsetup or clear device 
+DONE |- mount $1
+     - create kernel with initramfs for exherbo (patch genkernel or rewrite?) => just rewrite within profile
+DONE - dist=exherbo install support
+DONE |- profile parsing
+DONE |- exheres sync repo support 
+DONE |- install_portage_tree to install_repo_tree w/ exheres support
+DONE  |- move all code to profile side (see doc/exherbo.profile)
+DONE - revert all gentoo/funtoo/exherbo specific logic from inner code to template side
+     - always keep code generic, never include distro specific logic inside kicktoo: use profiles
+DONE - provide new default gentoo/funtoo/exherbo installation profiles
+DONE - add lzma stage tarball support
+DONE - add bzip2 stage tarball support 
+DONE - add gzip stage tarball supprt 
+DONE - add xz stage tarball support
+     - add LiLo boot support (default will always stay Grub)
+     - add swap partition as extended by default instead of primary (this would allow gentoo-lvm.profile and another system to dual boot)
+     - add some work about the new kernel 'make localmodconfig' from 2.6.32
+DROP - exherbo: add eclectic rc boot config support for exherbo (rcadd option) => rewrite within profile
+     - add 'precompiled' options to $kernel_sources and provide a binary kernel instead of sources (gain time)
+       - 1 kernel for normal install
+       - 1 kernel for luks install
+       - 1 kernel for lvm install
+
+========
+=FIXMES=
+========
+DONE - gentoo/funtoo: parsing bug timezone & hostname & keymap functions don't work with unstable ~gentoo and ~funtoo
+DONE  |- reason: variables lowercase w/ baselayout-2 as uppercase w/ baselayout-1
+DONE - sanity-check-config: dist=exherbo and tree_type=sync restricted
+DONE - sanity-check-config: dist=funtoo  and tree_type=snapshot restricted
+DONE - sanity-check-config: dist=exherbo and tree_type=sync restricted
+     - sanitize sanity-check-config (for use with -s option): does half what it should
+DONE - rc-update added by default after service build: should let user choose in profile
+DONE  - loggind_daemon
+DONE  - cron daemon
+DONE - exherbo: need detect_baselayout2() because of unstable stage3 (gentoo, funtoo)
+DONE - exherbo: need detect_grub2() because of config breakage (modules/misc.sh) BUGGY!!
+DONE - rescue: need checking for cryptsetup device for modules/rescue.sh
+DONE - exherbo: support for /dev/pts (critical) => reverse change and add -o rbind to /dev instead of bind.
+DONE - gentoo/funtoo: chpasswd invalid option resolved on 0.2.4 using -pam and rebuilding shadow (see doc/~funtoo*profile patch inside)
+
+========
+=TESTED=
+========
+All tests:
+ - validated using =app-emulation/virtualbox-ose-3.1.0
+
+---- Gentoo profiles (stable)
+------ x86
+DONE |- basic
+     |- luks
+     |- luks+noswap
+DONE |- lvm
+     |- dmraid
+     |- dmraid+luks
+     |- dmraid+lvm
+------ amd64
+     |- basic
+     |- luks
+     |- lvm
+     |- dmraid
+------ hppa
+------ sparc64
+
+---- ~Funtoo profiles (unstable)
+------ x86
+     |- basic
+     |- luks
+     |- luks+noswap
+     |- lvm
+     |- dmraid
+------ amd64
+     |- basic
+     |- luks
+     |- lvm
+     |- dmraid
+------ hppa
+------ sparc64
+
+---- Exherbo profile
+------ x86
+DROP |- basic
+------ amd64
+DROP |- basic
