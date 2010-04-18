@@ -34,6 +34,8 @@ DROP - exherbo: add eclectic rc boot config support for exherbo (rcadd option) =
        - 1 kernel for normal install
        - 1 kernel for luks install
        - 1 kernel for lvm install
+     - fetch profile from URL
+       - pass option to edit provided profile before running install process
 
 ========
 =FIXMES=
