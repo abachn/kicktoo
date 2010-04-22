@@ -133,6 +133,12 @@ do
 			echo "Kicktoo version ${VERSION} based on Quickstart modules"
 			exit 0
 			;;
+		--update)
+			has git
+			cd ..
+			git clone git://github.com/r1k0/kicktoo.git
+			cd kicktoo
+			;;
 		-*)
 			usage "You have specified an invalid option: ${a}"
 			exit 1
