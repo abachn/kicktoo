@@ -133,16 +133,6 @@ do
 			echo "Kicktoo version ${VERSION} based on Quickstart modules"
 			exit 0
 			;;
-# why bother writing an update function?
-# git clone git://github.com/r1k0/kicktoo.git
-# for the latest git version
-# or grab the last tarball
-#		--update)
-#			has git
-#			cd ..
-#			git clone git://github.com/r1k0/kicktoo.git
-#			cd kicktoo
-#			;;
 		-*)
 			usage "You have specified an invalid option: ${a}"
 			exit 1
