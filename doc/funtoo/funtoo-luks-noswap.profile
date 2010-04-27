@@ -14,8 +14,8 @@ format /dev/mapper/root ext4
 mountfs /dev/sda1 	 ext2 /boot
 mountfs /dev/mapper/root ext4 /  noatime
 
-stage_uri 		http://dev.funtoo.org/linux/funtoo/i686/stage3-i686-current.tar.bz2
-tree_type		snapshot http://dev.funtoo.org/linux/funtoo/snapshots/portage-current.tar.bz2
+stage_uri		http://distro.ibiblio.org/pub/linux/distributions/funtoo/funtoo/i686/stage3-i686-current.tar.bz2
+tree_type		snapshot http://distro.ibiblio.org/pub/linux/distributions/funtoo/funtoo/snapshots/portage-current.tar.bz2
 rootpw 			a
 kernel_config_uri	http://www.openchill.org/kconfig.2.6.30
 genkernel_opts		--luks # required

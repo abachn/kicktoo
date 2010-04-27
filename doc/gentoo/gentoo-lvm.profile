@@ -33,8 +33,8 @@ mountfs /dev/vg/opt  ext4 /opt  noatime
 mountfs /dev/vg/var  ext4 /var  noatime
 mountfs /dev/vg/tmp  ext4 /tmp  noatime
 
-stage_uri		http://dev.funtoo.org/linux/gentoo/i686/stage3-i686-current.tar.bz2
-tree_type		snapshot http://dev.funtoo.org/linux/gentoo/snapshots/portage-current.tar.bz2
+stage_uri		http://distro.ibiblio.org/pub/linux/distributions/funtoo/gentoo/i686/stage3-i686-current.tar.bz2
+tree_type		snapshot http://distro.ibiblio.org/pub/linux/distributions/gentoo/snapshots/portage-current.tar.bz2
 kernel_config_uri       http://www.openchill.org/kconfig.2.6.30
 genkernel_opts          --lvm # required
 kernel_sources		gentoo-sources

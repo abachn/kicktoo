@@ -260,7 +260,7 @@ runstep finishing_cleanup 		"Cleaning up"
 
 notify 					"Install complete!"
 
-if [ "${reboot}" = "yes" ]; then
+if [ "${reboot}" == "yes" ]; then
 	notify 				"Rebooting..."
 	reboot
 fi
