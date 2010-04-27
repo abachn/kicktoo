@@ -148,6 +148,8 @@ if [ -n "${server}" ]; then
 		profile="/tmp/kicktoo_profile"
 	fi
 fi
+# TODO fetch the profile from a url to a local file and check that the local file exists
+# TODO create command line option to edit the profile before continuing
 if [ -z "${profile}" ]; then
 	usage "You must specify a profile"
 	exit 1
@@ -224,6 +226,7 @@ if [ "${do_tree}" == "yes" ] ; then
 	runstep fetch_repo_tree 	"Fetching repository tree"
 	runstep unpack_repo_tree	"Unpacking repository tree"
 fi
+# TODO deploy additional config - unpack a formated tar.gz over til structure to update/add config options
 if [ "${do_luks}" == "yes" ] ; then
 	runstep install_cryptsetup 	"Installing cryptsetup"
 fi

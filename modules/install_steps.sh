@@ -273,7 +273,6 @@ fetch_repo_tree() {
                 spawn_chroot "emerge --sync" || die "could not sync portage tree"
         elif [ "${tree_type}" = "snapshot" ]; then
                 fetch "${portage_snapshot_uri}" "${chroot_dir}/$(get_filename_from_uri ${portage_snapshot_uri})" || die "could not fetch portage snapshot"
-#                spawn "tar xjf ${chroot_dir}/$(get_filename_from_uri ${portage_snapshot_uri}) -C ${chroot_dir}/usr" || die "could not unpack portage snapshot"
         elif [ "${tree_type}" = "webrsync" ]; then
                 spawn_chroot "emerge-webrsync" || die "could not emerge-webrsync"
         elif [ "${tree_type}" = "none" ]; then
