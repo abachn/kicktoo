@@ -169,6 +169,14 @@ stage_path() {
 	stage_path="${path}"
 }
 
+config_uri() {
+	do_config_uri=yes
+	local uri=$1
+	
+	config_uri="${uri}"
+}
+
+
 tree_type() {
 	do_tree=yes
 	local type=$1

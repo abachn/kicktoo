@@ -289,6 +289,33 @@ unpack_repo_tree() {
 	fi
 }
 
+fetch_config_tarball() {
+	debug fetch_config_tarball "fetching config tarball"
+	if [ -n ${config_uri} ] ; then
+		fetch "${config_uri}" "${chroot_dir}/$(get_filename_from_uri ${config_uri})" || die "Could not fetch config tarball"
+	fi
+}
+
+unpack_config_tarball() {
+	debug unpack_config_tarball "unpacking config tarball"
+	if [ -n ${config_uri} ] ; then
+		local extension=${config_uri##*.}
+		local tarball=$(get_filename_from_uri ${config_uri})
+
+		if [ "$extension" == "bz2" ] ; then
+			spawn "tar xjpf ${chroot_dir}/${tarball} -C ${chroot_dir}" || die "Could not untar config tarball"
+		elif [ "$extension" == "gz" ] ; then
+			spawn "tar xzpf ${chroot_dir}/${tarball} -C ${chroot_dir}" || die "Could not untar config tarball"
+		elif [ "$extension" == "xz" ] ; then
+			spawn "unxz ${chroot_dir}/$(get_filename_from_uri ${config_uri})" || die "Could not unxz tarball"
+			spawn "tar xpf ${chroot_dir}/${tarball%.*} -C ${chroot_dir}" || die "Could not untar config tarball"
+		elif [ "$extension" == "lzma" ] ; then
+			spawn "unlzma ${chroot_dir}/$(get_filename_from_uri ${config_uri})" || die "Could not unlzma tarball"
+			spawn "tar xpf ${chroot_dir}/${tarball%.*} -C ${chroot_dir}" || die "Could not untar config tarball"
+		fi
+	fi
+}
+
 install_cryptsetup() {
 	spawn_chroot "emerge cryptsetup" || die "could not emerge cryptsetup"
 }

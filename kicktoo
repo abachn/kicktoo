@@ -20,6 +20,7 @@ do_host=0
 do_localmounts=0
 do_netmounts=0
 do_stage_uri=0
+do_config_uri=0
 do_format=0
 do_bootloader=0
 do_xpkg=0
@@ -70,11 +71,12 @@ Usage:
 	$0 [options] <profile>
 
 Options:
-	-h, --help            This
-	-d, --debug           Output debugging messages
-	-q, --quiet           Only output fatal error messages
-	-v, --verbose         Be verbose (show command output)
-	-s, --sanity-check    Sanity check install profile
+	-h, --help               This
+	-d, --debug              Output debugging messages
+	-q, --quiet              Only output fatal error messages
+	-v, --verbose            Be verbose (show command output)
+	-s, --sanity-check       Sanity check install profile
+	-p, --get-profile <URL>  Get profile from URL
 EOF
 #	-c, --client <host>   Act as a client and connect to a kicktoo daemon
 	cat <<FOE
@@ -129,6 +131,10 @@ do
 			server=${1}
 			shift
 			;;
+		-p|--get-profile)
+			profile_uri=${1}
+			shift
+			;;
 		--version)
 			echo "Kicktoo version ${VERSION} based on Quickstart modules"
 			exit 0
@@ -148,16 +154,23 @@ if [ -n "${server}" ]; then
 		profile="/tmp/kicktoo_profile"
 	fi
 fi
-# TODO fetch the profile from a url to a local file and check that the local file exists
-# TODO create command line option to edit the profile before continuing
+# fetch profile from URI
+if [ -n "${profile_uri}" ]; then
+        profile="/tmp/kicktoo_profile"
+	fetch "${profile_uri}" "${profile}" || die "Could not fetch profile"
+fi
+# ${profile} must have a value
 if [ -z "${profile}" ]; then
 	usage "You must specify a profile"
 	exit 1
 fi
+# check that ${profile} exists
 if [ ! -f "${profile}" ]; then
 	error "Specified profile does not exist!"
 	exit 1
 else
+# TODO create command line option to edit the profile before continuing
+
 	# load profile
 	source "${profile}"
 	# profile variables are now accessible
@@ -226,7 +239,10 @@ if [ "${do_tree}" == "yes" ] ; then
 	runstep fetch_repo_tree 	"Fetching repository tree"
 	runstep unpack_repo_tree	"Unpacking repository tree"
 fi
-# TODO deploy additional config - unpack a formated tar.gz over til structure to update/add config options
+if [ "${do_config_uri}" == "yes" ] ; then
+	runstep fetch_config_tarball	"Fetching config tarball"
+	runstep unpack_config_tarball 	"Unpacking config tarball"
+fi
 if [ "${do_luks}" == "yes" ] ; then
 	runstep install_cryptsetup 	"Installing cryptsetup"
 fi
