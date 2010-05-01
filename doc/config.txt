@@ -185,6 +185,17 @@ tree_type - Specifies the portage tree type (defaults to sync)
     uri  - URI to the location of the portage snapshot if you specified
            'snapshot' for the type
 
+=============================================================
+config_uri - Specifies the URI to a prepared config tarball that will be unpacked
+             over the chroot (optional)
+
+  Usage:
+    config_uri <uri>
+
+  Parameters:
+    uri - URI to the location of the config tarball. protocol can be http, https,
+          ftp, or file
+
 =============================================================================
 bootloader_install_device - Specifies the device to install the bootloader to
                             (defaults to MBR of device /boot is on)
