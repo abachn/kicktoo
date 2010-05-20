@@ -75,11 +75,12 @@ fetch() {
 
         local protocol=$(get_protocol_from_uri "${uri}")
         debug fetch "protocol is ${protocol}"
-        if isafunc "fetch_${protocol}" ; then
+	# TODO: bug for strange reasons
+#        if isafunc "fetch_${protocol}" ; then
                 fetch_${protocol} "${1}" "${2}"
                 return $?
-        else
-                die "Expecting ftp http https protocol: ${protocol} ${1} ${2}"
-        fi
+#        else
+#                die "Expecting ftp http https protocol: ${protocol} ${1} ${2}"
+#        fi
 }
 
