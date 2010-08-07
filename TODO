@@ -1,6 +1,8 @@
 ===========
 =WISH LIST=
 ===========
+     - rewrite http ftp https transfer protocol handling
+     - remove tftp support
 DONE - detect if cryptsetup is there in case of --luks
 DONE - detect if unxz is there in case of installing exherbo
 DONE - --luks genkernel support for unstable: ~gentoo, funtoo (need baselayout-2)
